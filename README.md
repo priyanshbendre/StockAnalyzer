@@ -1,0 +1,2 @@
+# StockAnalyzer
+Calculate Stock Ratios

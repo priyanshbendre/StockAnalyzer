@@ -1,2 +1,2 @@
 # StockAnalyzer
-Calculate Stock Ratios
+Calculate Stock Projections and Important Ratios

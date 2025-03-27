@@ -156,10 +156,10 @@ class Stock_Data:
             "gross_profit_margin_in%": self.get_gross_profit_margin(),
             "net_margin_in%": self.get_net_margin(),
             
-            "cagr_revenue_in%": self.calc_cagr(),
-            "cagr_share_count_in%": self.calc_cagr("Diluted Average Shares"),
+            "cagr_revenue_3y_in%": self.calc_cagr(),
+            "cagr_share_count_3y_in%": self.calc_cagr("Diluted Average Shares"),
             "total_debt": self.stock_info.get('totalDebt', None),
-            "avg_free_cash_flow": self.calc_cashflow_avg(),
+            "avg_3y_free_cash_flow": self.calc_cashflow_avg(),
             # "dividend_yield_in%": divyield_percent,
             "dividend_yield_in%": self.stock_info.get('dividendYield', None),            
             "fcf_yield_in%": self.ratio_free_cash_flow_yield(),

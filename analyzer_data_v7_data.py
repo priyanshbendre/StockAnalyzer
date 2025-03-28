@@ -163,7 +163,7 @@ class Stock_Data:
             # "dividend_yield_in%": divyield_percent,
             "dividend_yield_in%": self.stock_info.get('dividendYield', None),            
             "fcf_yield_in%": self.ratio_free_cash_flow_yield(),
-            "peg_ratio": self.ratio_peg(),
+            "trailing_peg_ratio": self.ratio_peg(),
             "avg_fcf_to_total_debt": self.metric_avg_fcf_to_total_debt(),
             "shares_outstanding": self.stock_info.get('sharesOutstanding', None),
         }

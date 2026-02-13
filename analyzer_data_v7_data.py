@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import yfinance as yf
 import sys
 from texttable import Texttable
@@ -235,7 +237,7 @@ async def async_get_summary_for_tickers(tickers, max_concurrent=5):
 
 if __name__ == "__main__":
     # Example usage
-    tickers = ["CDNS", "AMD", "INTC"]
+    tickers = ["CAVA","AMZN","SPGI","ADBE"]
     #analysis_summary = get_summary_for_tickers(tickers) #replaced with async API call
     analysis_summary = asyncio.run(async_get_summary_for_tickers(tickers))
     # print(analysis_summary) #write to CSV

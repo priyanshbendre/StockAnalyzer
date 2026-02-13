@@ -1,0 +1,23 @@
+# Ignore Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+env/
+venv/
+
+# Ignore OS files
+.DS_Store
+
+# Ignore editor config
+.vscode/
+
+# Ignore data and output files
+ticker_data.json
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.bak

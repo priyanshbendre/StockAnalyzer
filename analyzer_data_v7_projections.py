@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import json
 
 class Stock_Projections:
@@ -91,7 +93,7 @@ class Stock_Projections:
 
 
 #create class object
-stock_tickers = ['CDNS', 'INTC']
+stock_tickers = ['CAVA', 'AMZN', 'ADBE', 'SPGI']
 
 print("Stock Projections:")
 for tick in stock_tickers:

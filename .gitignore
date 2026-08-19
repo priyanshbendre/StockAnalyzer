@@ -17,6 +17,11 @@ venv/
 # Ignore data and output files
 ticker_data.json
 
+# Ignore MCP server runtime databases (cache only; no persistent DB)
+*.db
+*.db-wal
+*.db-shm
+
 # Ignore logs and temporary files
 *.log
 *.tmp

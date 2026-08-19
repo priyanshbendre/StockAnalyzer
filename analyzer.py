@@ -71,8 +71,11 @@ def print_table(data: dict, tickers: list[str]):
 
 
 def load_summary(data_path: str) -> dict:
-    with open(data_path, 'r') as file:
-        return json.load(file)
+    try:
+        with open(data_path, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        raise SystemExit(f"No data file at {data_path}. Run 'python analyzer.py collect' first to generate it.")
 
 
 _JSONC_LINE_COMMENT = re.compile(r'^\s*//.*$', re.MULTILINE)
@@ -100,7 +103,7 @@ def load_assumptions(config_path: str | None) -> dict:
 
 def print_projections(ticker: str, summary: dict, assumptions: dict):
     projections = StockProjections(ticker, summary, assumptions)
-    print(f"\nProjections for {ticker} ({summary.get('company_name', 'N/A')}):")
+    print(f"\nProjections for {ticker}:")
     print(f"  Current Stock Data: {summary}")
     print(f"  Input User Assumptions: {projections.user_assumptions}")
     print(f"  Projected Revenue:            {fmt(projections.project_revenue(), prefix='$')}")

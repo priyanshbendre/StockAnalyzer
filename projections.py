@@ -1,9 +1,5 @@
 #!/usr/bin/python3
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 DEFAULT_ASSUMPTIONS = {
     "yoy_growth_revenue": 0.02,          # fallback yoy revenue growth (percent)
     "num_of_years": 5,                   # number of years of analysis

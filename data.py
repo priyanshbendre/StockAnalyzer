@@ -103,10 +103,6 @@ class StockData:
             logger.warning("Error calculating average for '%s' for %s: %s", row_label, self.ticker, e)
             return None
 
-    def ratio_pe(self) -> float | None:
-        """Return the current trailing Price-to-Earnings (PE) ratio."""
-        return self.stock_info.get('trailingPE', None)
-
     def ratio_free_cash_flow_yield(self) -> float | None:
         """Calculate the TTM Free Cash Flow Yield in percent."""
         try:
@@ -117,18 +113,6 @@ class StockData:
             return None
         except Exception as e:
             logger.warning("Error calculating Free Cash Flow Yield for %s: %s", self.ticker, e)
-            return None
-
-    def ratio_peg(self) -> float | None:
-        """Calculate the PEG (Price/Earnings to Growth) ratio."""
-        try:
-            pe_ratio = self.stock_info.get('trailingPE', None)
-            cagr_eps = self.calc_cagr("Basic EPS")
-            if pe_ratio is not None and cagr_eps is not None and cagr_eps > 0:
-                return pe_ratio / cagr_eps
-            return None
-        except Exception as e:
-            logger.warning("Error calculating PEG ratio for %s: %s", self.ticker, e)
             return None
 
     def metric_debt_to_avg_fcf(self) -> float | None:
@@ -144,23 +128,23 @@ class StockData:
             return None
 
     def data_summary(self) -> dict:
-        """Generate and return a dictionary of the financial summary of the stock."""
+        """Generate and return a dictionary of the financial summary of the stock.
+
+        Kept to the metrics with no stock-data MCP equivalent, plus the fields
+        the projections stage consumes (ttm_revenue, current_price,
+        shares_outstanding, net_margin_in%).
+        """
         return {
-            "company_name": self.stock_info.get('shortName', 'N/A'),
-            "current_price": self.stock_info.get('currentPrice', None),
-            "market_cap": self.stock_info.get('marketCap', None),
             "ttm_revenue": self.stock_info.get('totalRevenue', None),
-            "eps": self.stock_info.get('trailingEps', None),
-            "pe_ratio": self.ratio_pe(),
-            "gross_profit_margin_in%": self.get_gross_profit_margin(),
+            "current_price": self.stock_info.get('currentPrice', None),
             "net_margin_in%": self.get_net_margin(),
+            "gross_profit_margin_in%": self.get_gross_profit_margin(),
             "cagr_revenue_3y_in%": self.calc_cagr(),
             "cagr_share_count_3y_in%": self.calc_cagr("Diluted Average Shares"),
             "total_debt": self.stock_info.get('totalDebt', None),
             "avg_3y_free_cash_flow": self.calc_cashflow_avg(),
             "dividend_yield_in%": self.stock_info.get('dividendYield', None),
             "fcf_yield_in%": self.ratio_free_cash_flow_yield(),
-            "peg_ratio": self.ratio_peg(),
             "debt_to_avg_fcf": self.metric_debt_to_avg_fcf(),
             "shares_outstanding": self.stock_info.get('sharesOutstanding', None),
         }

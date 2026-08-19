@@ -1,2 +1,2 @@
-yfinance
-texttable
+yfinance>=0.2.0
+texttable>=1.7.0

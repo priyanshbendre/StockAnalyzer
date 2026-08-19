@@ -1,68 +1,86 @@
 # StockAnalyzer
-Calculate Stock Projections and Important Ratios
 
+Calculate stock projections and important financial ratios using Yahoo Finance data.
 
-# **User Guide for Stock Analysis Script**
+This project is a two-stage analysis pipeline:
 
-## **Overview**
-This Python script retrieves and analyzes financial data for multiple stock tickers using the `yfinance` library. It calculates key financial metrics and saves the results in a JSON file while also displaying the data in a formatted table.
+1. **`analyzer_data_v7_data.py`** — fetches financial data for a list of tickers, computes key metrics, saves them to `ticker_data.json`, and prints a comparison table.
+2. **`analyzer_data_v7_projections.py`** — reads `ticker_data.json` and projects future revenue, net income, EPS, stock price, and market cap based on user assumptions.
 
-## **Installation**
-Before running the script, ensure you have the required dependencies installed:
-
-```bash
-pip install yfinance texttable
-```
-
-## **How to Use the Script**
-### **1. Input: Stock Tickers**
-- The script takes a list of stock tickers as input via the `tickers` variable in the `main` method.
-- Modify the `tickers` list with the symbols of the stocks you want to analyze.
-- Example:
-
-    ```python
-    tickers = ["CDNS", "AMD", "INTC"]
-    ```
-
-- You can include as many stock symbols as needed.
-
-### **2. Running the Script**
-Run the script using:
+## Installation
 
 ```bash
-python script_name.py
+pip install -r requirements.txt
 ```
 
-### **3. Output**
-#### **JSON File**
-The script generates a JSON file (`ticker_data.json`) containing stock analysis data for all tickers.
+## Usage
 
-#### **Formatted Table**
-The script prints a structured table comparing financial metrics for the given tickers.
+### 1. Fetch stock data
 
-## **Understanding the Output**
-The output includes key metrics such as:
-- **Company Name**
-- **Current Price**
-- **Market Cap**
-- **Revenue Growth (CAGR)**
-- **Earnings Per Share (EPS)**
-- **PE Ratio, PEG Ratio**
-- **Net & Gross Profit Margins**
-- **Free Cash Flow Yield**
-- **Total Debt**
-- **Dividend Yield**
-- **Shares Outstanding**
+Edit the `tickers` list in `analyzer_data_v7_data.py` (`__main__`) to choose which stocks to analyze:
 
-The table format allows for easy comparison of these metrics across different stocks.
+```python
+tickers = ["CAVA", "AMZN", "SPGI", "ADBE"]
+```
 
-## **Script Workflow**
-1. **Retrieves stock data** asynchronously for each ticker.
-2. **Calculates financial metrics** using the `Stock_Data` class.
-3. **Writes the results to `ticker_data.json`**.
-4. **Displays a comparison table** for quick reference.
+Then run:
 
-## **Customization**
-- Modify the `tickers` list to analyze different stocks.
-- Add new financial metrics inside the `Stock_Data` class.
-- Adjust the formatting or save the output in different formats (CSV, Excel).
+```bash
+python analyzer_data_v7_data.py
+```
+
+Outputs:
+
+- **`ticker_data.json`** — per-ticker financial summary, used by the projections script.
+- **Formatted table** — printed to the console comparing metrics across tickers.
+
+### 2. Generate projections
+
+Edit the `stock_tickers` list and the user assumptions in `analyzer_data_v7_projections.py` (inside `Stock_Projections.user_assumptions_input()`), then run:
+
+```bash
+python analyzer_data_v7_projections.py
+```
+
+## Metrics computed by the data script
+
+- Company name
+- Current price
+- Market cap
+- TTM revenue
+- EPS
+- PE ratio
+- Gross profit margin (%)
+- Net margin (%)
+- Revenue CAGR (3-year)
+- Share count CAGR (3-year)
+- Total debt
+- Average 3-year free cash flow
+- Dividend yield (%)
+- FCF yield (%)
+- PEG ratio (trailing PE / EPS CAGR)
+- Avg FCF to total debt
+- Shares outstanding
+
+## Projection assumptions
+
+The projection script takes the following inputs (editable in `user_assumptions_input()`):
+
+- YoY revenue growth
+- Number of years to project
+- YoY share count growth (positive = dilution)
+- Estimated exit PE multiple
+- Net margin
+
+## Script workflow
+
+1. `analyzer_data_v7_data.py` asynchronously fetches stock data (max 5 concurrent tickers) using `yfinance`.
+2. Metrics are calculated in the `Stock_Data` class.
+3. Results are written to `ticker_data.json`.
+4. `analyzer_data_v7_projections.py` loads the JSON, applies assumptions, and prints projected revenue, net income, shares outstanding, EPS, stock price, market cap, and upside/downside potential.
+
+## Customization
+
+- Change the `tickers` / `stock_tickers` lists to analyze different stocks.
+- Add new metrics inside the `Stock_Data` class in `analyzer_data_v7_data.py`.
+- Adjust the assumptions in `Stock_Projections.user_assumptions_input()`.

@@ -1,0 +1,33 @@
+{
+    // yoy_growth_revenue: expected year-over-year revenue growth, in PERCENT.
+    // Used in projections.py -> StockProjections.project_revenue():
+    //     revenue * (1 + yoy_growth_revenue / 100) ^ num_of_years
+    // If omitted, defaults to 80% of the stock's 3-year revenue CAGR
+    // (cagr_revenue_3y_in% from ticker_data.json).
+    "yoy_growth_revenue": 2.0,
+
+    // num_of_years: number of years over which to project.
+    // Used as the exponent in the growth formulas (project_revenue,
+    // project_shares_outstanding). Static default: 5.
+    "num_of_years": 5,
+
+    // yoy_growth_share_count: year-over-year change in share count, in PERCENT.
+    // Positive = dilution (shares increase), negative = buybacks.
+    // Used in StockProjections.project_shares_outstanding():
+    //     shares * (1 + yoy_growth_share_count / 100) ^ num_of_years
+    // If omitted, defaults to 80% of the stock's 3-year share-count CAGR.
+    "yoy_growth_share_count": 5.0,
+
+    // estimated_pe: PE multiple used to value the stock at the end of the period.
+    // Used in StockProjections.calc_stock_valuation():
+    //     projected_eps * estimated_pe  ->  projected stock price
+    // Static default: 20.
+    "estimated_pe": 20,
+
+    // net_margin: net margin applied to projected revenue, as a FRACTION
+    // (0.10 = 10%). Used in StockProjections.project_net_income():
+    //     projected_revenue * net_margin  ->  projected net income
+    // If omitted, defaults to 80% of the stock's current net margin
+    // (net_margin_in% from ticker_data.json, divided by 100).
+    "net_margin": 0.10
+}

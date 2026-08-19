@@ -1,11 +1,11 @@
 # StockAnalyzer
 
-Calculate stock projections and important financial ratios using Yahoo Finance data.
+Fetch stock fundamentals from Yahoo Finance and project future valuations.
 
-This project is a two-stage analysis pipeline:
+A two-stage pipeline:
 
-1. **`analyzer_data_v7_data.py`** — fetches financial data for a list of tickers, computes key metrics, saves them to `ticker_data.json`, and prints a comparison table.
-2. **`analyzer_data_v7_projections.py`** — reads `ticker_data.json` and projects future revenue, net income, EPS, stock price, and market cap based on user assumptions.
+1. **collect** — fetch financial data for a list of tickers, compute key metrics, save them to `ticker_data.json`, and print a comparison table.
+2. **project** — read the collected data and project future revenue, net income, EPS, stock price, and market cap based on user assumptions.
 
 ## Installation
 
@@ -15,34 +15,63 @@ pip install -r requirements.txt
 
 ## Usage
 
-### 1. Fetch stock data
-
-Edit the `tickers` list in `analyzer_data_v7_data.py` (`__main__`) to choose which stocks to analyze:
-
-```python
-tickers = ["CAVA", "AMZN", "SPGI", "ADBE"]
+```bash
+python analyzer.py collect --tickers CAVA AMZN SPGI ADBE
+python analyzer.py project --tickers CAVA AMZN
+python analyzer.py analyze --tickers CAVA AMZN   # collect + project in one step
 ```
 
-Then run:
+If `--tickers` is omitted, the default list is used: `CAVA, AMZN, SPGI, ADBE`.
+
+### `collect`
+
+Fetches data asynchronously (5 concurrent by default) and writes `ticker_data.json`:
 
 ```bash
-python analyzer_data_v7_data.py
+python analyzer.py collect --tickers CAVA AMZN --output ticker_data.json --concurrency 5
 ```
 
-Outputs:
+### `project`
 
-- **`ticker_data.json`** — per-ticker financial summary, used by the projections script.
-- **Formatted table** — printed to the console comparing metrics across tickers.
-
-### 2. Generate projections
-
-Edit the `stock_tickers` list and the user assumptions in `analyzer_data_v7_projections.py` (inside `Stock_Projections.user_assumptions_input()`), then run:
+Reads a JSON data file and prints projections:
 
 ```bash
-python analyzer_data_v7_projections.py
+python analyzer.py project --tickers CAVA AMZN --data ticker_data.json --config assumptions.jsonc
 ```
 
-## Metrics computed by the data script
+### `analyze`
+
+Runs collect then project in one command:
+
+```bash
+python analyzer.py analyze --tickers CAVA AMZN --config assumptions.jsonc
+```
+
+## Assumptions config file
+
+Projection assumptions live in a **JSONC** config file (`//` comments allowed; a template is at `assumptions.example.jsonc`). Any key you omit falls back to a **derived default** — 80% of the stock's own current value from `ticker_data.json`. Example:
+
+```jsonc
+{
+    "yoy_growth_revenue": 2.0,
+    "num_of_years": 5,
+    "yoy_growth_share_count": 5.0,
+    "estimated_pe": 20,
+    "net_margin": 0.10
+}
+```
+
+| Key | Meaning | Derived default (80% of current value) |
+|---|---|---|
+| `yoy_growth_revenue` | Expected year-over-year revenue growth (percent) | 0.8 × revenue CAGR (3y) |
+| `num_of_years` | Number of years to project (static) | 5 |
+| `yoy_growth_share_count` | Year-over-year share count change (percent; positive = dilution) | 0.8 × share-count CAGR (3y) |
+| `estimated_pe` | Estimated PE multiple at the end of the projection (static) | 20 |
+| `net_margin` | Net margin used for the projection (fraction) | 0.8 × current net margin / 100 |
+
+Units note: `yoy_growth_revenue`, `yoy_growth_share_count` use the same units as their source data (percent). `estimated_pe` is a static multiple (default 20). `net_margin` is a **fraction** (e.g. `0.10` = 10%), so its derived default divides the percentage by 100.
+
+## Metrics computed by `collect`
 
 - Company name
 - Current price
@@ -57,30 +86,31 @@ python analyzer_data_v7_projections.py
 - Total debt
 - Average 3-year free cash flow
 - Dividend yield (%)
-- FCF yield (%)
+- FCF yield (%) — TTM free cash flow / market cap
 - PEG ratio (trailing PE / EPS CAGR)
-- Avg FCF to total debt
+- Debt to avg FCF (years to pay off debt)
 - Shares outstanding
 
-## Projection assumptions
+## Project layout
 
-The projection script takes the following inputs (editable in `user_assumptions_input()`):
+```
+StockAnalyzer/
+├── analyzer.py          # CLI entry point (collect / project / analyze)
+├── data.py              # StockData: yfinance fetch + metric calculations
+├── projections.py       # StockProjections: future-value projections
+├── tests/test_core.py   # unit tests for the pure math (no network)
+├── requirements.txt
+└── ticker_data.json     # generated output
+```
 
-- YoY revenue growth
-- Number of years to project
-- YoY share count growth (positive = dilution)
-- Estimated exit PE multiple
-- Net margin
+## Tests
 
-## Script workflow
+```bash
+python -m unittest discover tests
+```
 
-1. `analyzer_data_v7_data.py` asynchronously fetches stock data (max 5 concurrent tickers) using `yfinance`.
-2. Metrics are calculated in the `Stock_Data` class.
-3. Results are written to `ticker_data.json`.
-4. `analyzer_data_v7_projections.py` loads the JSON, applies assumptions, and prints projected revenue, net income, shares outstanding, EPS, stock price, market cap, and upside/downside potential.
+## Notes on robustness
 
-## Customization
-
-- Change the `tickers` / `stock_tickers` lists to analyze different stocks.
-- Add new metrics inside the `Stock_Data` class in `analyzer_data_v7_data.py`.
-- Adjust the assumptions in `Stock_Projections.user_assumptions_input()`.
+- Missing financial rows (row labels vary between tickers and yfinance versions) are logged and skipped — one bad ticker does not abort the run.
+- Network calls are retried with exponential backoff.
+- Projection math returns `N/A` when required inputs are missing.

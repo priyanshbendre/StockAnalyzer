@@ -10,41 +10,38 @@ DEFAULT_ASSUMPTIONS = {
 
 DEFAULT_HAIRCUT = 0.8
 
+# Assumptions derived from the stock's own data: assumption key -> (summary key, divisor).
+# estimated_pe is intentionally absent: it has no data equivalent, so it stays at its static default.
+# Note the units differ: the growth keys are percents, while net_margin is a fraction (hence /100).
+DERIVED_ASSUMPTIONS = {
+    "yoy_growth_revenue": ("cagr_revenue_3y_in%", 1),
+    "yoy_growth_share_count": ("cagr_share_count_3y_in%", 1),
+    "net_margin": ("net_margin_in%", 100),
+}
+
 
 def derive_assumptions(analysis_summary: dict, user_assumptions: dict | None = None) -> dict:
     """Build the effective assumptions.
 
     Static defaults are overridden by user config, then by 80% of the stock's
     own current values where the config did not specify a value and the data is
-    available. Note that units differ: yoy_growth_revenue and
-    yoy_growth_share_count are percents, while net_margin is a fraction (hence
-    the /100). estimated_pe stays at its static default unless user-set.
+    available.
     """
     user_assumptions = user_assumptions or {}
     assumptions = dict(DEFAULT_ASSUMPTIONS)
     assumptions.update(user_assumptions)
 
-    if "yoy_growth_revenue" not in user_assumptions:
-        cagr = analysis_summary.get("cagr_revenue_3y_in%")
-        if cagr is not None:
-            assumptions["yoy_growth_revenue"] = DEFAULT_HAIRCUT * cagr
-
-    if "yoy_growth_share_count" not in user_assumptions:
-        cagr = analysis_summary.get("cagr_share_count_3y_in%")
-        if cagr is not None:
-            assumptions["yoy_growth_share_count"] = DEFAULT_HAIRCUT * cagr
-
-    if "net_margin" not in user_assumptions:
-        margin = analysis_summary.get("net_margin_in%")
-        if margin is not None:
-            assumptions["net_margin"] = DEFAULT_HAIRCUT * margin / 100
+    for key, (summary_key, divisor) in DERIVED_ASSUMPTIONS.items():
+        if key not in user_assumptions:
+            value = analysis_summary.get(summary_key)
+            if value is not None:
+                assumptions[key] = DEFAULT_HAIRCUT * value / divisor
 
     return assumptions
 
 
 class StockProjections:
-    def __init__(self, stock_ticker: str, analysis_summary: dict, user_assumptions: dict | None = None):
-        self.stock_ticker = stock_ticker
+    def __init__(self, analysis_summary: dict, user_assumptions: dict | None = None):
         self.analysis_summary = analysis_summary
         self.user_assumptions = derive_assumptions(analysis_summary, user_assumptions)
 
@@ -55,14 +52,21 @@ class StockProjections:
             return None
         return current_value * (1 + growth_rate / 100) ** num_of_years
 
-    def project_revenue(self) -> float | None:
-        """Project future revenue based on user assumptions."""
-        curr_revenue = self.analysis_summary.get('ttm_revenue', None)
+    def _project(self, summary_key: str, growth_key: str) -> float | None:
+        """Grow a summary metric at its assumption's rate over num_of_years."""
         return self.calc_future_value(
-            curr_revenue,
-            self.user_assumptions['yoy_growth_revenue'],
+            self.analysis_summary.get(summary_key, None),
+            self.user_assumptions[growth_key],
             self.user_assumptions['num_of_years'],
         )
+
+    def project_revenue(self) -> float | None:
+        """Project future revenue based on user assumptions."""
+        return self._project('ttm_revenue', 'yoy_growth_revenue')
+
+    def project_shares_outstanding(self) -> float | None:
+        """Project future shares outstanding based on user assumptions."""
+        return self._project('shares_outstanding', 'yoy_growth_share_count')
 
     def project_net_income(self) -> float | None:
         """Project future net income based on user assumptions."""
@@ -70,15 +74,6 @@ class StockProjections:
         if projected_revenue is None:
             return None
         return self.user_assumptions['net_margin'] * projected_revenue
-
-    def project_shares_outstanding(self) -> float | None:
-        """Project future shares outstanding based on user assumptions."""
-        curr_shares_outstanding = self.analysis_summary.get('shares_outstanding', None)
-        return self.calc_future_value(
-            curr_shares_outstanding,
-            self.user_assumptions['yoy_growth_share_count'],
-            self.user_assumptions['num_of_years'],
-        )
 
     def project_eps(self) -> float | None:
         net_income = self.project_net_income()

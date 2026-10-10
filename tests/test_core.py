@@ -88,7 +88,7 @@ class TestStockProjections(unittest.TestCase):
         }
 
     def test_projection_pipeline(self):
-        projections = StockProjections("TEST", self.summary, self.assumptions)
+        projections = StockProjections(self.summary, self.assumptions)
         self.assertAlmostEqual(projections.project_revenue(), 1_100_000_000)
         self.assertAlmostEqual(projections.project_net_income(), 110_000_000)
         self.assertAlmostEqual(projections.project_shares_outstanding(), 100_000_000)
@@ -98,7 +98,7 @@ class TestStockProjections(unittest.TestCase):
         self.assertAlmostEqual(projections.calc_upside_downside_potential(), -78.0)
 
     def test_missing_fields_return_none(self):
-        projections = StockProjections("TEST", {}, self.assumptions)
+        projections = StockProjections({}, self.assumptions)
         self.assertIsNone(projections.project_revenue())
         self.assertIsNone(projections.project_eps())
         self.assertIsNone(projections.calc_stock_valuation())
@@ -108,11 +108,11 @@ class TestStockProjections(unittest.TestCase):
     def test_missing_current_price_returns_none(self):
         summary = dict(self.summary)
         del summary["current_price"]
-        projections = StockProjections("TEST", summary, self.assumptions)
+        projections = StockProjections(summary, self.assumptions)
         self.assertIsNone(projections.calc_upside_downside_potential())
 
     def test_default_assumptions_used(self):
-        projections = StockProjections("TEST", self.summary)
+        projections = StockProjections(self.summary)
         self.assertEqual(projections.user_assumptions, DEFAULT_ASSUMPTIONS)
 
 

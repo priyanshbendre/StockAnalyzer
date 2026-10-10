@@ -73,23 +73,22 @@ Units note: `yoy_growth_revenue`, `yoy_growth_share_count` use the same units as
 
 ## Metrics computed by `collect`
 
-- Company name
-- Current price
-- Market cap
-- TTM revenue
-- EPS
-- PE ratio
-- Gross profit margin (%)
+Kept to the metrics with no stock-data MCP equivalent, plus the fields the projections stage consumes (marked *):
+
+- Current price *
+- TTM revenue *
 - Net margin (%)
+- Gross profit margin (%)
 - Revenue CAGR (3-year)
 - Share count CAGR (3-year)
 - Total debt
 - Average 3-year free cash flow
 - Dividend yield (%)
 - FCF yield (%) — TTM free cash flow / market cap
-- PEG ratio (trailing PE / EPS CAGR)
 - Debt to avg FCF (years to pay off debt)
-- Shares outstanding
+- Shares outstanding *
+
+Fields already provided by the stock-data MCP server (company name, market cap, EPS, PE, PEG, ...) are intentionally not duplicated here.
 
 ## Project layout
 
